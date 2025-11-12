@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="002-create-dynamic-query-tables" author="jpaul">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="query_base"/>
+            </not>
+        </preConditions>
+
+        <!-- Create query_base table -->
+        <createTable tableName="query_base">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" primaryKeyName="pk_query_base" nullable="false"/>
+            </column>
+            <column name="name_unique" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_query_base_name"/>
+            </column>
+            <column name="context" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="query" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Create query_filter table -->
+        <createTable tableName="query_filter">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" primaryKeyName="pk_query_filter" nullable="false"/>
+            </column>
+            <column name="name_unique" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_query_filter_name"/>
+            </column>
+            <column name="context" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="query_fragment" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Create query_order table -->
+        <createTable tableName="query_order">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" primaryKeyName="pk_query_order" nullable="false"/>
+            </column>
+            <column name="name_unique" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_query_order_name"/>
+            </column>
+            <column name="context" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="query_fragment" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Create indexes -->
+        <createIndex indexName="idx_query_base_context" tableName="query_base">
+            <column name="context"/>
+        </createIndex>
+
+        <createIndex indexName="idx_query_filter_context" tableName="query_filter">
+            <column name="context"/>
+        </createIndex>
+
+        <createIndex indexName="idx_query_order_context" tableName="query_order">
+            <column name="context"/>
+        </createIndex>
+
+        <rollback>
+            <dropTable tableName="query_base"/>
+            <dropTable tableName="query_filter"/>
+            <dropTable tableName="query_order"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
+

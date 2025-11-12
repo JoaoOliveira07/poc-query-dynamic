@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="004-add-deleted-at-to-customer" author="jpaul">
+        <addColumn tableName="customer">
+            <column name="deleted_at" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <createIndex indexName="idx_customer_deleted_at" tableName="customer">
+            <column name="deleted_at"/>
+        </createIndex>
+
+        <rollback>
+            <dropColumn tableName="customer" columnName="deleted_at"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
+

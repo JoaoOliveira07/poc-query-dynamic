@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POC - Sistema de Query Dinâmica</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+        }
+        .info-box {
+            background-color: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .get {
+            background-color: #61affe;
+            color: white;
+        }
+        .post {
+            background-color: #49cc90;
+            color: white;
+        }
+        .put {
+            background-color: #fca130;
+            color: white;
+        }
+        .delete {
+            background-color: #f93e3e;
+            color: white;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .button:hover {
+            background-color: #2980b9;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 POC - Sistema de Query Dinâmica</h1>
+
+        <div class="info-box">
+            <strong>Status:</strong> Aplicação rodando com sucesso! ✅<br>
+            <strong>Perfil:</strong> Desenvolvimento (H2 Database)<br>
+            <strong>Porta:</strong> 8080
+        </div>
+
+        <h2>🔗 Links Rápidos</h2>
+        <div>
+            <a href="/h2-console" class="button">Console H2</a>
+            <a href="/api/customers" class="button">Ver Customers</a>
+            <a href="/api/dynamic-queries/available?context=customer" class="button">Queries Disponíveis</a>
+        </div>
+
+        <h2>🗄️ Acesso ao Banco de Dados H2</h2>
+        <div class="info-box">
+            <strong>URL Console:</strong> <a href="/h2-console">http://localhost:8080/h2-console</a><br><br>
+            <strong>Configurações de Conexão:</strong><br>
+            • JDBC URL: <code>jdbc:h2:mem:devdb</code><br>
+            • Username: <code>sa</code><br>
+            • Password: <em>(deixe em branco)</em>
+        </div>
+
+        <h3>Tabelas Criadas pelo Liquibase:</h3>
+        <ul>
+            <li><code>CUSTOMER</code> - Tabela de clientes</li>
+            <li><code>QUERY_BASE</code> - Queries base do sistema</li>
+            <li><code>QUERY_FILTER</code> - Filtros dinâmicos disponíveis</li>
+            <li><code>QUERY_ORDER</code> - Ordenações disponíveis</li>
+            <li><code>DATABASECHANGELOG</code> - Controle do Liquibase</li>
+            <li><code>DATABASECHANGELOGLOCK</code> - Lock do Liquibase</li>
+        </ul>
+
+        <h2>📊 Dados de Exemplo</h2>
+        <p>A aplicação já vem com 5 clientes de exemplo cadastrados:</p>
+        <pre>SELECT * FROM CUSTOMER;</pre>
+
+        <h2>🔌 Endpoints da API</h2>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/customers</code>
+            <p>Lista todos os customers não deletados</p>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/customers/{id}</code>
+            <p>Busca um customer específico por ID</p>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/customers</code>
+            <p>Cria um novo customer</p>
+            <pre>{
+  "name": "Nova Empresa Ltda",
+  "tradeName": "Nova Empresa",
+  "cnpj": "12345678901234",
+  "active": true,
+  "blocked": false
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <span class="method get">GET</span>
+            <code>/api/dynamic-queries/available?context=customer</code>
+            <p>Lista todas as queries, filtros e ordenações disponíveis para o contexto 'customer'</p>
+        </div>
+
+        <div class="endpoint">
+            <span class="method post">POST</span>
+            <code>/api/dynamic-queries/execute</code>
+            <p>Executa uma query dinâmica combinando base + filtros + ordenação</p>
+            <pre>{
+  "context": "customer",
+  "filters": ["only_customer_actives"],
+  "order": "customer_order_by_name_asc"
+}</pre>
+        </div>
+
+        <h2>💡 Exemplos de Queries Dinâmicas</h2>
+
+        <h3>1. Buscar clientes ativos ordenados por nome:</h3>
+        <pre>{
+  "context": "customer",
+  "filters": ["only_customer_actives"],
+  "order": "customer_order_by_name_asc"
+}</pre>
+
+        <h3>2. Buscar cliente por CNPJ:</h3>
+        <pre>{
+  "context": "customer",
+  "filters": ["customer_by_cnpj"],
+  "parameters": {
+    "cnpj": "12345678000190"
+  }
+}</pre>
+
+        <h3>3. Buscar clientes bloqueados ordenados por data de criação:</h3>
+        <pre>{
+  "context": "customer",
+  "filters": ["only_customer_blocked"],
+  "order": "customer_order_by_created_desc"
+}</pre>
+
+        <h3>4. Buscar por nome parcial:</h3>
+        <pre>{
+  "context": "customer",
+  "filters": ["customer_by_name"],
+  "order": "customer_order_by_name_asc",
+  "parameters": {
+    "name": "ABC"
+  }
+}</pre>
+
+        <h2>🎯 Conceito do Sistema</h2>
+        <p>O sistema permite construir queries JPA dinamicamente através da combinação de:</p>
+        <ul>
+            <li><strong>Query Base:</strong> A query principal (ex: <code>SELECT c FROM Customer c WHERE c.deletedAt IS NULL</code>)</li>
+            <li><strong>Filtros:</strong> Fragmentos que podem ser adicionados dinamicamente (ex: <code>AND c.active = TRUE</code>)</li>
+            <li><strong>Ordenação:</strong> Define como ordenar os resultados (ex: <code>ORDER BY c.name ASC</code>)</li>
+            <li><strong>Parâmetros:</strong> Valores dinâmicos passados para os filtros</li>
+        </ul>
+
+        <h2>🔧 Tecnologias Utilizadas</h2>
+        <ul>
+            <li>Spring Boot 4.0.0-SNAPSHOT</li>
+            <li>Spring Data JPA</li>
+            <li>Liquibase (migrations)</li>
+            <li>H2 Database (dev)</li>
+            <li>PostgreSQL (prod)</li>
+            <li>Lombok</li>
+            <li>Maven</li>
+        </ul>
+
+        <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; color: #7f8c8d;">
+            <p>POC - Sistema de Query Dinâmica | Desenvolvido para demonstração de conceito</p>
+        </footer>
+    </div>
+</body>
+</html>
+

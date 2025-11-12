@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="003-insert-initial-query-data" author="jpaul" runAlways="true">
+
+        <!-- Delete existing data before inserting -->
+        <delete tableName="query_order">
+            <where>context = 'CUSTOMER'</where>
+        </delete>
+        <delete tableName="query_filter">
+            <where>context = 'CUSTOMER'</where>
+        </delete>
+        <delete tableName="query_base">
+            <where>context = 'CUSTOMER'</where>
+        </delete>
+
+        <!-- Insert base query for customer -->
+        <insert tableName="query_base">
+            <column name="id" value="550e8400-e29b-41d4-a716-446655440000"/>
+            <column name="name_unique" value="customer_base_query"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="query" value="SELECT c FROM Customer c WHERE c.deletedAt IS NULL"/>
+            <column name="description" value="Base query for customer searches"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <!-- Insert filters -->
+        <insert tableName="query_filter">
+            <column name="id" value="550e8400-e29b-41d4-a716-446655440001"/>
+            <column name="name_unique" value="only_customer_actives"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="query_fragment" value="AND c.active = true"/>
+            <column name="description" value="Filter only active customers"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="query_filter">
+            <column name="id" value="550e8400-e29b-41d4-a716-446655440002"/>
+            <column name="name_unique" value="only_customer_blocked"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="query_fragment" value="AND c.blocked = true"/>
+            <column name="description" value="Filter only blocked customers"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="query_filter">
+            <column name="id" value="550e8400-e29b-41d4-a716-446655440003"/>
+            <column name="name_unique" value="customer_by_name"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="query_fragment" value="AND LOWER(c.name) LIKE LOWER(CONCAT('%', :name, '%'))"/>
+            <column name="description" value="Filter customers by name (partial match)"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="query_filter">
+            <column name="id" value="550e8400-e29b-41d4-a716-446655440004"/>
+            <column name="name_unique" value="customer_by_cnpj"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="query_fragment" value="AND c.cnpj = :cnpj"/>
+            <column name="description" value="Filter customers by CNPJ (exact match)"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="query_filter">
+            <column name="id" value="550e8400-e29b-41d4-a716-446655440005"/>
+            <column name="name_unique" value="customer_by_id"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="query_fragment" value="AND c.id = :id"/>
+            <column name="description" value="Filter customers by ID"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <!-- Insert orderings -->
+        <insert tableName="query_order">
+            <column name="id" value="550e8400-e29b-41d4-a716-446655440010"/>
+            <column name="name_unique" value="customer_order_by_name_asc"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="query_fragment" value="ORDER BY c.name ASC"/>
+            <column name="description" value="Order customers by name ascending"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="query_order">
+            <column name="id" value="550e8400-e29b-41d4-a716-446655440011"/>
+            <column name="name_unique" value="customer_order_by_name_desc"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="query_fragment" value="ORDER BY c.name DESC"/>
+            <column name="description" value="Order customers by name descending"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="query_order">
+            <column name="id" value="550e8400-e29b-41d4-a716-446655440012"/>
+            <column name="name_unique" value="customer_order_by_created_desc"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="query_fragment" value="ORDER BY c.createdAt DESC"/>
+            <column name="description" value="Order customers by creation date (newest first)"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="query_order">
+            <column name="id" value="550e8400-e29b-41d4-a716-446655440013"/>
+            <column name="name_unique" value="customer_order_by_created_asc"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="query_fragment" value="ORDER BY c.createdAt ASC"/>
+            <column name="description" value="Order customers by creation date (oldest first)"/>
+            <column name="active" valueBoolean="true"/>
+        </insert>
+
+        <rollback>
+            <delete tableName="query_base">
+                <where>context = 'CUSTOMER'</where>
+            </delete>
+            <delete tableName="query_filter">
+                <where>context = 'CUSTOMER'</where>
+            </delete>
+            <delete tableName="query_order">
+                <where>context = 'CUSTOMER'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
+
