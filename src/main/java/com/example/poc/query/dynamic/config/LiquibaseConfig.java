@@ -26,7 +26,6 @@ public class LiquibaseConfig {
         liquibase.setDefaultSchema(defaultSchema);
         liquibase.setShouldRun(true);
         liquibase.setDropFirst(false);
-        liquibase.setClearCheckSums(true); // Limpa checksums antes de executar
         return liquibase;
     }
 }

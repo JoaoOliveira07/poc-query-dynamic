@@ -14,6 +14,21 @@ spring:
       idle-timeout: 300000
       max-lifetime: 1200000
 
+  # H2 Console - Interface web para gerenciar banco de dados via navegador
+  # NOTA: Apesar do nome "H2", este console pode se conectar ao PostgreSQL
+  # Acesse: http://localhost:8080/h2-console
+  # Para conectar ao PostgreSQL, use:
+  #   JDBC URL: jdbc:postgresql://localhost:5432/poc_query_dynamic
+  #   Username: poc_user
+  #   Password: poc_password
+  #   Driver Class: org.postgresql.Driver
+  h2:
+    console:
+      enabled: ${H2_CONSOLE_ENABLED:true}  # Desabilite em produção com H2_CONSOLE_ENABLED=false
+      path: /h2-console
+      settings:
+        web-allow-others: true  # Permite acesso de outros IPs (cuidado em produção!)
+
   jpa:
     hibernate:
       ddl-auto: none
@@ -31,7 +46,6 @@ spring:
     drop-first: false
     default-schema: public
     contexts: default
-    clear-checksums: true
 
 server:
   port: ${SERVER_PORT:8080}
