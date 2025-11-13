@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="008-add-context-to-indicator-rule" author="system">
+
+        <!-- Adicionar coluna context -->
+        <addColumn tableName="indicator_rule">
+            <column name="context" type="VARCHAR(50)" defaultValue="CUSTOMER">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <!-- Criar índice para performance -->
+        <createIndex indexName="idx_indicator_rule_context" tableName="indicator_rule">
+            <column name="context"/>
+        </createIndex>
+
+        <!-- Criar índice composto para queries mais comuns -->
+        <createIndex indexName="idx_indicator_rule_context_active" tableName="indicator_rule">
+            <column name="context"/>
+            <column name="active"/>
+            <column name="display_order"/>
+        </createIndex>
+
+    </changeSet>
+
+</databaseChangeLog>
+

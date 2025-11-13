@@ -10,6 +10,8 @@
     <include file="db/changelog/changes/003-insert-initial-query-data.xml"/>
     <include file="db/changelog/changes/004-add-deleted-at-to-customer.xml"/>
     <include file="db/changelog/changes/005-insert-sample-customers.xml"/>
-
+    <include file="db/changelog/changes/006-create-indicator-tables.xml"/>
+    <include file="db/changelog/changes/008-add-context-to-indicator-rule.xml"/>
+    <include file="db/changelog/changes/007-insert-indicator-rules.xml"/>
 </databaseChangeLog>
 

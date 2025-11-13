@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="007-insert-indicator-rules" author="system">
+
+        <!-- Indicador: Cliente Bloqueado -->
+        <insert tableName="indicator_rule">
+            <column name="id" valueComputed="gen_random_uuid()"/>
+            <column name="rule_key" value="customer_is_blocked"/>
+            <column name="name" value="Cliente Bloqueado"/>
+            <column name="description" value="Indica se o cliente está bloqueado no sistema"/>
+            <column name="icon" value="lock"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="condition_field" value="blocked"/>
+            <column name="condition_operator" value="IS_TRUE"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="display_order" valueNumeric="1"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- Indicador: Cliente Inativo -->
+        <insert tableName="indicator_rule">
+            <column name="id" valueComputed="gen_random_uuid()"/>
+            <column name="rule_key" value="customer_is_inactive"/>
+            <column name="name" value="Cliente Inativo"/>
+            <column name="description" value="Indica se o cliente está inativo"/>
+            <column name="icon" value="user-slash"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="condition_field" value="active"/>
+            <column name="condition_operator" value="IS_FALSE"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="display_order" valueNumeric="2"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- Indicador: Cliente Ativo -->
+        <insert tableName="indicator_rule">
+            <column name="id" valueComputed="gen_random_uuid()"/>
+            <column name="rule_key" value="customer_is_active"/>
+            <column name="name" value="Cliente Ativo"/>
+            <column name="description" value="Indica se o cliente está ativo no sistema"/>
+            <column name="icon" value="check-circle"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="condition_field" value="active"/>
+            <column name="condition_operator" value="IS_TRUE"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="display_order" valueNumeric="3"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- Indicador: Cliente Sem Bloqueio -->
+        <insert tableName="indicator_rule">
+            <column name="id" valueComputed="gen_random_uuid()"/>
+            <column name="rule_key" value="customer_not_blocked"/>
+            <column name="name" value="Sem Bloqueio"/>
+            <column name="description" value="Indica que o cliente não possui bloqueios"/>
+            <column name="icon" value="unlock"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="condition_field" value="blocked"/>
+            <column name="condition_operator" value="IS_FALSE"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="display_order" valueNumeric="4"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- Indicador: Cliente Deletado -->
+        <insert tableName="indicator_rule">
+            <column name="id" valueComputed="gen_random_uuid()"/>
+            <column name="rule_key" value="customer_is_deleted"/>
+            <column name="name" value="Cliente Deletado"/>
+            <column name="description" value="Indica se o cliente foi deletado (soft delete)"/>
+            <column name="icon" value="trash"/>
+            <column name="context" value="CUSTOMER"/>
+            <column name="condition_field" value="deletedAt"/>
+            <column name="condition_operator" value="IS_NOT_NULL"/>
+            <column name="active" valueBoolean="true"/>
+            <column name="display_order" valueNumeric="5"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>

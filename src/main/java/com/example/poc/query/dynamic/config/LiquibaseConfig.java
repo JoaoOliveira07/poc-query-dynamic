@@ -25,7 +25,7 @@ public class LiquibaseConfig {
         liquibase.setChangeLog(changeLog);
         liquibase.setDefaultSchema(defaultSchema);
         liquibase.setShouldRun(true);
-        liquibase.setDropFirst(false);
+        liquibase.setDropFirst(true);
         return liquibase;
     }
 }

@@ -3,6 +3,7 @@ package com.example.poc.query.dynamic.usecase;
 import com.example.poc.query.dynamic.dto.*;
 import com.example.poc.query.dynamic.entity.Customer;
 import com.example.poc.query.dynamic.service.DynamicQueryService;
+import com.example.poc.query.dynamic.service.IndicatorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,6 +20,7 @@ public class SearchCustomerUseCase {
     private static final String CONTEXT = "CUSTOMER";
 
     private final DynamicQueryService dynamicQueryService;
+    private final IndicatorService indicatorService;
 
     /**
      * Executa a busca e retorna os dados junto com as opções disponíveis de filtros e ordenações
@@ -43,9 +45,15 @@ public class SearchCustomerUseCase {
         // Executar query
         List<?> results = dynamicQueryService.executeDynamicQuery(request);
 
-        // Converter para CustomerDTO
+        // Converter para CustomerDTO e adicionar indicadores
         List<CustomerDTO> customers = results.stream()
-                .map(obj -> CustomerDTO.fromEntity((Customer) obj))
+                .map(obj -> {
+                    Customer customer = (Customer) obj;
+                    CustomerDTO dto = CustomerDTO.fromEntity(customer);
+                    // Avaliar e adicionar indicadores usando contexto CUSTOMER
+                    dto.setIndicators(indicatorService.evaluateIndicators(customer, CONTEXT));
+                    return dto;
+                })
                 .toList();
 
         // Buscar total de elementos para paginação
