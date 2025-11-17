@@ -186,7 +186,8 @@ public class QueryConfigService {
             log.info("Preview query: {}", queryString);
 
             // Try to execute with limit for preview
-            Query query = entityManager.createNativeQuery(queryString);
+            // Use createQuery instead of createNativeQuery to support JPQL (camelCase properties)
+            Query query = entityManager.createQuery(queryString);
 
             // Set parameters if provided
             if (request.getParameters() != null) {
@@ -203,17 +204,20 @@ public class QueryConfigService {
             for (Object result : results) {
                 Map<String, Object> row = new LinkedHashMap<>();
                 if (result instanceof Object[] cols) {
+                    // Multiple columns selected (e.g., SELECT c.name, c.cnpj FROM ...)
                     for (int i = 0; i < cols.length; i++) {
                         row.put("column_" + (i + 1), cols[i]);
                     }
                 } else {
-                    row.put("result", result);
+                    // Single entity or value selected (e.g., SELECT c FROM ...)
+                    // Convert entity to map using reflection
+                    row = convertEntityToMap(result);
                 }
                 previewResults.add(row);
             }
 
             // Get total count (without limit)
-            Query countQuery = entityManager.createNativeQuery(queryString);
+            Query countQuery = entityManager.createQuery(queryString);
             if (request.getParameters() != null) {
                 request.getParameters().forEach(countQuery::setParameter);
             }
@@ -236,6 +240,42 @@ public class QueryConfigService {
                     .totalResults(0)
                     .build();
         }
+    }
+
+    // Helper method to convert entity to map
+    private Map<String, Object> convertEntityToMap(Object entity) {
+        Map<String, Object> map = new LinkedHashMap<>();
+
+        if (entity == null) {
+            return map;
+        }
+
+        // Handle primitive types and strings
+        if (entity instanceof String || entity instanceof Number || entity instanceof Boolean) {
+            map.put("value", entity);
+            return map;
+        }
+
+        // Use reflection to get all fields from the entity
+        try {
+            Class<?> clazz = entity.getClass();
+            java.lang.reflect.Field[] fields = clazz.getDeclaredFields();
+
+            for (java.lang.reflect.Field field : fields) {
+                field.setAccessible(true);
+                try {
+                    Object value = field.get(entity);
+                    map.put(field.getName(), value);
+                } catch (IllegalAccessException e) {
+                    log.warn("Could not access field: {}", field.getName());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error converting entity to map", e);
+            map.put("error", "Could not convert entity: " + e.getMessage());
+        }
+
+        return map;
     }
 
     // Mappers

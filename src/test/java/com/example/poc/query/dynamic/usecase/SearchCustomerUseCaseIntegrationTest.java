@@ -497,6 +497,313 @@ class SearchCustomerUseCaseIntegrationTest {
 
     @Test
     @Order(16)
+    @DisplayName("Deve retornar indicadores para clientes bloqueados")
+    void shouldReturnIndicatorsForBlockedCustomers() {
+        // Given
+        CustomerFilterDTO filter = CustomerFilterDTO.builder()
+                .filters(List.of("only_customer_blocked"))
+                .parameters(Map.of())
+                .build();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<CustomerDTO> result = searchCustomerUseCase.execute(filter, pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+
+        CustomerDTO blockedCustomer = result.getContent().get(0);
+        assertThat(blockedCustomer.getBlocked()).isTrue();
+        assertThat(blockedCustomer.getActive()).isTrue();
+
+        // Validar que os indicadores foram avaliados
+        assertThat(blockedCustomer.getIndicators()).isNotNull();
+        assertThat(blockedCustomer.getIndicators()).isNotEmpty();
+
+        // Validar indicador "customer_is_blocked" está TRUE
+        assertThat(blockedCustomer.getIndicators())
+                .filteredOn(indicator -> "customer_is_blocked".equals(indicator.getKey()))
+                .hasSize(1)
+                .first()
+                .satisfies(indicator -> {
+                    assertThat(indicator.getValue()).isTrue();
+                    assertThat(indicator.getName()).isEqualTo("Cliente Bloqueado");
+                    assertThat(indicator.getIcon()).isEqualTo("lock");
+                    assertThat(indicator.getDescription()).isEqualTo("Indica se o cliente está bloqueado no sistema");
+                });
+
+        // Validar indicador "customer_not_blocked" está FALSE
+        assertThat(blockedCustomer.getIndicators())
+                .filteredOn(indicator -> "customer_not_blocked".equals(indicator.getKey()))
+                .hasSize(1)
+                .first()
+                .satisfies(indicator -> {
+                    assertThat(indicator.getValue()).isFalse();
+                    assertThat(indicator.getName()).isEqualTo("Sem Bloqueio");
+                });
+
+        // Validar indicador "customer_is_active" está TRUE
+        assertThat(blockedCustomer.getIndicators())
+                .filteredOn(indicator -> "customer_is_active".equals(indicator.getKey()))
+                .hasSize(1)
+                .first()
+                .satisfies(indicator -> {
+                    assertThat(indicator.getValue()).isTrue();
+                    assertThat(indicator.getName()).isEqualTo("Cliente Ativo");
+                });
+    }
+
+    @Test
+    @Order(17)
+    @DisplayName("Deve retornar indicadores para clientes inativos")
+    void shouldReturnIndicatorsForInactiveCustomers() {
+        // Given
+        CustomerFilterDTO filter = CustomerFilterDTO.builder()
+                .filters(List.of())
+                .parameters(Map.of())
+                .build();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<CustomerDTO> result = searchCustomerUseCase.execute(filter, pageable);
+
+        // Then
+        CustomerDTO inactiveCustomer = result.getContent().stream()
+                .filter(c -> !c.getActive())
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(inactiveCustomer.getName()).isEqualTo("Empresa Oliveira S/A");
+        assertThat(inactiveCustomer.getActive()).isFalse();
+
+        // Validar indicadores
+        assertThat(inactiveCustomer.getIndicators()).isNotNull();
+        assertThat(inactiveCustomer.getIndicators()).isNotEmpty();
+
+        // Validar indicador "customer_is_inactive" está TRUE
+        assertThat(inactiveCustomer.getIndicators())
+                .filteredOn(indicator -> "customer_is_inactive".equals(indicator.getKey()))
+                .hasSize(1)
+                .first()
+                .satisfies(indicator -> {
+                    assertThat(indicator.getValue()).isTrue();
+                    assertThat(indicator.getName()).isEqualTo("Cliente Inativo");
+                    assertThat(indicator.getIcon()).isEqualTo("user-slash");
+                });
+
+        // Validar indicador "customer_is_active" está FALSE
+        assertThat(inactiveCustomer.getIndicators())
+                .filteredOn(indicator -> "customer_is_active".equals(indicator.getKey()))
+                .hasSize(1)
+                .first()
+                .satisfies(indicator -> {
+                    assertThat(indicator.getValue()).isFalse();
+                });
+    }
+
+    @Test
+    @Order(18)
+    @DisplayName("Deve retornar indicadores para clientes ativos e não bloqueados")
+    void shouldReturnIndicatorsForActiveAndNotBlockedCustomers() {
+        // Given
+        CustomerFilterDTO filter = CustomerFilterDTO.builder()
+                .filters(List.of())
+                .parameters(Map.of())
+                .build();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<CustomerDTO> result = searchCustomerUseCase.execute(filter, pageable);
+
+        // Then
+        CustomerDTO activeNotBlockedCustomer = result.getContent().stream()
+                .filter(c -> c.getActive() && !c.getBlocked())
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(activeNotBlockedCustomer.getActive()).isTrue();
+        assertThat(activeNotBlockedCustomer.getBlocked()).isFalse();
+
+        // Validar indicadores
+        assertThat(activeNotBlockedCustomer.getIndicators()).isNotNull();
+
+        // Validar indicador "customer_is_active" está TRUE
+        assertThat(activeNotBlockedCustomer.getIndicators())
+                .filteredOn(indicator -> "customer_is_active".equals(indicator.getKey()))
+                .first()
+                .satisfies(indicator -> assertThat(indicator.getValue()).isTrue());
+
+        // Validar indicador "customer_not_blocked" está TRUE
+        assertThat(activeNotBlockedCustomer.getIndicators())
+                .filteredOn(indicator -> "customer_not_blocked".equals(indicator.getKey()))
+                .first()
+                .satisfies(indicator -> assertThat(indicator.getValue()).isTrue());
+
+        // Validar indicador "customer_is_inactive" está FALSE
+        assertThat(activeNotBlockedCustomer.getIndicators())
+                .filteredOn(indicator -> "customer_is_inactive".equals(indicator.getKey()))
+                .first()
+                .satisfies(indicator -> assertThat(indicator.getValue()).isFalse());
+
+        // Validar indicador "customer_is_blocked" está FALSE
+        assertThat(activeNotBlockedCustomer.getIndicators())
+                .filteredOn(indicator -> "customer_is_blocked".equals(indicator.getKey()))
+                .first()
+                .satisfies(indicator -> assertThat(indicator.getValue()).isFalse());
+    }
+
+    @Test
+    @Order(19)
+    @DisplayName("Deve retornar todos os indicadores para cada customer")
+    void shouldReturnAllIndicatorsForEachCustomer() {
+        // Given
+        CustomerFilterDTO filter = CustomerFilterDTO.builder()
+                .filters(List.of())
+                .parameters(Map.of())
+                .build();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<CustomerDTO> result = searchCustomerUseCase.execute(filter, pageable);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(4);
+
+        // Validar que TODOS os customers têm indicadores
+        assertThat(result.getContent())
+                .allMatch(customer -> customer.getIndicators() != null)
+                .allMatch(customer -> !customer.getIndicators().isEmpty());
+
+        // Validar que cada customer tem os indicadores do contexto CUSTOMER
+        // Esperamos 5 indicadores: blocked, not_blocked, active, inactive, deleted
+        result.getContent().forEach(customer -> {
+            assertThat(customer.getIndicators())
+                    .extracting("key")
+                    .containsExactlyInAnyOrder(
+                            "customer_is_blocked",
+                            "customer_not_blocked",
+                            "customer_is_active",
+                            "customer_is_inactive",
+                            "customer_is_deleted"
+                    );
+
+            // Validar que todos os indicadores têm os campos preenchidos
+            customer.getIndicators().forEach(indicator -> {
+                assertThat(indicator.getKey()).isNotBlank();
+                assertThat(indicator.getName()).isNotBlank();
+                assertThat(indicator.getValue()).isNotNull();
+                assertThat(indicator.getIcon()).isNotBlank();
+                assertThat(indicator.getDescription()).isNotBlank();
+            });
+        });
+    }
+
+    @Test
+    @Order(20)
+    @DisplayName("Deve retornar indicador de deletado como FALSE para clientes não deletados")
+    void shouldReturnDeletedIndicatorAsFalseForNonDeletedCustomers() {
+        // Given
+        CustomerFilterDTO filter = CustomerFilterDTO.builder()
+                .filters(List.of())
+                .parameters(Map.of())
+                .build();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<CustomerDTO> result = searchCustomerUseCase.execute(filter, pageable);
+
+        // Then
+        // Todos os customers de teste não estão deletados
+        result.getContent().forEach(customer -> {
+            assertThat(customer.getIndicators())
+                    .filteredOn(indicator -> "customer_is_deleted".equals(indicator.getKey()))
+                    .first()
+                    .satisfies(indicator -> {
+                        assertThat(indicator.getValue()).isFalse();
+                        assertThat(indicator.getName()).isEqualTo("Cliente Deletado");
+                        assertThat(indicator.getIcon()).isEqualTo("trash");
+                    });
+        });
+    }
+
+    @Test
+    @Order(21)
+    @DisplayName("Deve retornar indicadores consistentes com os dados do customer")
+    void shouldReturnIndicatorsConsistentWithCustomerData() {
+        // Given
+        CustomerFilterDTO filter = CustomerFilterDTO.builder()
+                .filters(List.of())
+                .parameters(Map.of())
+                .build();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<CustomerDTO> result = searchCustomerUseCase.execute(filter, pageable);
+
+        // Then
+        result.getContent().forEach(customer -> {
+            // Validar consistência do indicador "customer_is_active" com o campo active
+            assertThat(customer.getIndicators())
+                    .filteredOn(indicator -> "customer_is_active".equals(indicator.getKey()))
+                    .first()
+                    .satisfies(indicator ->
+                            assertThat(indicator.getValue()).isEqualTo(customer.getActive()));
+
+            // Validar consistência do indicador "customer_is_inactive" com o campo active
+            assertThat(customer.getIndicators())
+                    .filteredOn(indicator -> "customer_is_inactive".equals(indicator.getKey()))
+                    .first()
+                    .satisfies(indicator ->
+                            assertThat(indicator.getValue()).isEqualTo(!customer.getActive()));
+
+            // Validar consistência do indicador "customer_is_blocked" com o campo blocked
+            assertThat(customer.getIndicators())
+                    .filteredOn(indicator -> "customer_is_blocked".equals(indicator.getKey()))
+                    .first()
+                    .satisfies(indicator ->
+                            assertThat(indicator.getValue()).isEqualTo(customer.getBlocked()));
+
+            // Validar consistência do indicador "customer_not_blocked" com o campo blocked
+            assertThat(customer.getIndicators())
+                    .filteredOn(indicator -> "customer_not_blocked".equals(indicator.getKey()))
+                    .first()
+                    .satisfies(indicator ->
+                            assertThat(indicator.getValue()).isEqualTo(!customer.getBlocked()));
+        });
+    }
+
+    @Test
+    @Order(22)
+    @DisplayName("Deve manter indicadores mesmo quando aplicados filtros")
+    void shouldMaintainIndicatorsEvenWhenFiltersApplied() {
+        // Given
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("name", "Silva");
+
+        CustomerFilterDTO filter = CustomerFilterDTO.builder()
+                .filters(List.of("only_customer_actives", "customer_by_name"))
+                .parameters(parameters)
+                .build();
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<CustomerDTO> result = searchCustomerUseCase.execute(filter, pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(2);
+
+        // Validar que os indicadores estão presentes mesmo com filtros aplicados
+        result.getContent().forEach(customer -> {
+            assertThat(customer.getIndicators()).isNotNull();
+            assertThat(customer.getIndicators()).isNotEmpty();
+            assertThat(customer.getIndicators()).hasSize(5);
+        });
+    }
+
+    @Test
+    @Order(23)
     @DisplayName("Deve filtrar customer por ID usando filtro dinâmico")
     void shouldFilterCustomerById() {
         // Given
@@ -521,7 +828,7 @@ class SearchCustomerUseCaseIntegrationTest {
     }
 
     @Test
-    @Order(17)
+    @Order(24)
     @DisplayName("Deve ordenar por data de criação ascendente usando ordenação dinâmica")
     void shouldOrderByCreatedAtAscending() {
         // Given
@@ -549,7 +856,7 @@ class SearchCustomerUseCaseIntegrationTest {
     }
 
     @Test
-    @Order(18)
+    @Order(25)
     @DisplayName("Deve ignorar customers com deletedAt preenchido (soft delete)")
     void shouldIgnoreSoftDeletedCustomers() {
         // Given - Criar customer e marcar como deletado
@@ -582,7 +889,7 @@ class SearchCustomerUseCaseIntegrationTest {
     }
 
     @Test
-    @Order(19)
+    @Order(26)
     @DisplayName("Deve lançar exceção ao tentar filtrar por ID com formato inválido")
     void shouldThrowExceptionWhenFilteringByInvalidUUID() {
         // Given
@@ -602,7 +909,7 @@ class SearchCustomerUseCaseIntegrationTest {
     }
 
     @Test
-    @Order(20)
+    @Order(27)
     @DisplayName("Deve combinar filtro por ID com outros filtros")
     void shouldCombineIdFilterWithOtherFilters() {
         // Given

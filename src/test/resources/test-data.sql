@@ -31,6 +31,22 @@ VALUES (RANDOM_UUID(), 'customer_order_by_created_desc', 'CUSTOMER', 'ORDER BY c
 INSERT INTO query_order (id, name_unique, context, query_fragment, description, active, created_at, updated_at)
 VALUES (RANDOM_UUID(), 'customer_order_by_created_asc', 'CUSTOMER', 'ORDER BY c.createdAt ASC', 'Ordenar customers por data de criação (mais antigos primeiro)', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+-- Insert indicator rules for customers
+INSERT INTO indicator_rule (id, rule_key, name, description, icon, context, condition_field, condition_operator, active, display_order, created_at, updated_at)
+VALUES (RANDOM_UUID(), 'customer_is_blocked', 'Cliente Bloqueado', 'Indica se o cliente está bloqueado no sistema', 'lock', 'CUSTOMER', 'blocked', 'IS_TRUE', true, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO indicator_rule (id, rule_key, name, description, icon, context, condition_field, condition_operator, active, display_order, created_at, updated_at)
+VALUES (RANDOM_UUID(), 'customer_is_inactive', 'Cliente Inativo', 'Indica se o cliente está inativo', 'user-slash', 'CUSTOMER', 'active', 'IS_FALSE', true, 2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO indicator_rule (id, rule_key, name, description, icon, context, condition_field, condition_operator, active, display_order, created_at, updated_at)
+VALUES (RANDOM_UUID(), 'customer_is_active', 'Cliente Ativo', 'Indica se o cliente está ativo no sistema', 'check-circle', 'CUSTOMER', 'active', 'IS_TRUE', true, 3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO indicator_rule (id, rule_key, name, description, icon, context, condition_field, condition_operator, active, display_order, created_at, updated_at)
+VALUES (RANDOM_UUID(), 'customer_not_blocked', 'Sem Bloqueio', 'Indica que o cliente não possui bloqueios', 'unlock', 'CUSTOMER', 'blocked', 'IS_FALSE', true, 4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+INSERT INTO indicator_rule (id, rule_key, name, description, icon, context, condition_field, condition_operator, active, display_order, created_at, updated_at)
+VALUES (RANDOM_UUID(), 'customer_is_deleted', 'Cliente Deletado', 'Indica se o cliente foi deletado (soft delete)', 'trash', 'CUSTOMER', 'deletedAt', 'IS_NOT_NULL', true, 5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 -- Insert sample customers for testing
 INSERT INTO customer (id, name, trade_name, cnpj, active, blocked, created_at, updated_at)
 VALUES (RANDOM_UUID(), 'Empresa ABC Ltda', 'ABC Comercio', '12345678000190', true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
