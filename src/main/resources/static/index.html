@@ -275,6 +275,25 @@
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(400px); opacity: 0; }
         }
+
+        .indicator-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 16px;
+            margin-right: 8px;
+        }
+        .indicator-true {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+        .indicator-false {
+            background: #f8d7da;
+            color: #842029;
+        }
     </style>
 </head>
 <body>
@@ -443,7 +462,7 @@
                 <small style="color: #9CA3AF; font-size: 12px;">Formato JSON com os parâmetros da query</small>
             </div>
 
-            <button class="btn btn-primary" onclick="previewQuery()">🎯 Preview Query</button>
+            <button class="btn btn-primary" onclick="previewQuery()">Preview Query</button>
 
             <div id="previewResults" style="margin-top: 30px;"></div>
         </div>
@@ -458,7 +477,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
                 <!-- Filters Section -->
                 <div>
-                    <h3 style="color: #3B82F6; margin-bottom: 15px; font-size: 1.2em;">🔍 Available Filters</h3>
+                    <h3 style="color: #3B82F6; margin-bottom: 15px; font-size: 1.2em;">Available Filters</h3>
                     <div id="customerFiltersContainer" style="background: #f8f9fa; padding: 20px; border-radius: 8px; min-height: 200px;">
                         <p style="color: #9CA3AF;">Loading filters...</p>
                     </div>
@@ -466,7 +485,7 @@
 
                 <!-- Orders Section -->
                 <div>
-                    <h3 style="color: #3B82F6; margin-bottom: 15px; font-size: 1.2em;">📊 Available Orders</h3>
+                    <h3 style="color: #3B82F6; margin-bottom: 15px; font-size: 1.2em;">Available Orders</h3>
                     <div id="customerOrdersContainer" style="background: #f8f9fa; padding: 20px; border-radius: 8px; min-height: 200px;">
                         <p style="color: #9CA3AF;">Loading orders...</p>
                     </div>
@@ -475,7 +494,7 @@
 
             <!-- Parameters Section -->
             <div style="margin-bottom: 30px;">
-                <h3 style="color: #3B82F6; margin-bottom: 15px; font-size: 1.2em;">⚙️ Parameters</h3>
+                <h3 style="color: #3B82F6; margin-bottom: 15px; font-size: 1.2em;">Parameters</h3>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
                     <div class="form-group">
                         <label for="customerTestParameters">Parameters (JSON)</label>
@@ -1195,7 +1214,7 @@
 
             // Preview Results
             if (result.valid && result.previewResults && result.previewResults.length > 0) {
-                html += `<h4>📊 Preview Results (${result.totalResults} total)</h4>`;
+                html += `<h4>Preview Results (${result.totalResults} total)</h4>`;
                 html += '<div class="results-table"><div class="table-container"><table>';
 
                 // Table header
@@ -1461,6 +1480,42 @@
                 }
 
                 html += '</div>';
+
+                // --- Legend for indicators: collect unique indicators from returned customers ---
+                if (result.customers && result.customers.content && result.customers.content.length > 0) {
+                    const allIndicatorsMap = {};
+                    result.customers.content.forEach(cust => {
+                        if (cust.indicators && cust.indicators.length > 0) {
+                            cust.indicators.forEach(ind => {
+                                // use name as key (fallback to icon if name missing)
+                                const key = ind.name || ind.icon || JSON.stringify(ind);
+                                if (!allIndicatorsMap[key]) {
+                                    allIndicatorsMap[key] = ind;
+                                }
+                            });
+                        }
+                    });
+
+                    const allKeys = Object.keys(allIndicatorsMap);
+                    if (allKeys.length > 0) {
+                        html += '<div style="background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px;">';
+                        html += '<p style="margin-bottom: 8px;"><strong>Legend</strong></p>';
+                        html += '<div style="display:flex; flex-wrap:wrap; gap:12px;">';
+
+                        allKeys.forEach(k => {
+                            const ind = allIndicatorsMap[k];
+                            html += `<div style="display:flex; flex-direction:column; align-items:flex-start; width:220px; padding:6px;">
+                                <div style=\"display:flex; align-items:center; gap:8px; font-size:14px; color:#111827;\">
+                                    <i class=\"fas fa-${escapeHtml(ind.icon)}\" style=\"font-size:18px;\"></i>
+                                    <span style=\"font-weight:600;\">${escapeHtml(ind.name || '')}</span>
+                                </div>
+                                <div style=\"font-size:12px; color:#6B7280; margin-top:4px;\">${escapeHtml(ind.description || '')}</div>
+                            </div>`;
+                        });
+
+                        html += '</div></div>';
+                    }
+                }
             }
 
             // Handle Page<CustomerDTO> structure
@@ -1468,7 +1523,7 @@
 
             // Show results
             if (customersData && customersData.content && customersData.content.length > 0) {
-                html += `<h4>📊 Results (${customersData.content.length} customers on this page)</h4>`;
+                html += `<h4>Results (${customersData.content.length} customers on this page)</h4>`;
                 html += '<div class="table-container"><table>';
                 html += '<thead><tr>';
                 html += '<th>Name</th><th>Trade Name</th><th>CNPJ</th><th>Indicators</th><th>Status</th><th>Created At</th>';
@@ -1485,9 +1540,16 @@
                     html += '<td>';
                     if (customer.indicators && customer.indicators.length > 0) {
                         customer.indicators.forEach(indicator => {
+                            const title = escapeHtml(indicator.description || indicator.name || '');
+                            const icon = escapeHtml(indicator.icon || 'question');
+                            // show only icon; black when true, gray when false
                             if (indicator.value) {
-                                html += `<span class="indicator-badge indicator-true" title="${escapeHtml(indicator.description || indicator.name)}">
-                                    <i class="fas fa-${escapeHtml(indicator.icon)}"></i> ${escapeHtml(indicator.name)}
+                                html += `<span class="indicator-icon indicator-true" title="${title}" style="margin-right:8px;">
+                                    <i class="fas fa-${icon}"></i>
+                                </span>`;
+                            } else {
+                                html += `<span class="indicator-icon indicator-false" title="${title}" style="margin-right:8px; opacity:0.7;">
+                                    <i class="fas fa-${icon}"></i>
                                 </span>`;
                             }
                         });
